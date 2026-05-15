@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import { Transaction } from './transaction.entity';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
@@ -15,6 +15,26 @@ export class TransactionService {
 
   async findAll(): Promise<Transaction[]> {
     return this.transactionRepository.find();
+  }
+
+  async findByWallet(walletIds: number[]): Promise<Transaction[]> {
+    return this.transactionRepository.find({
+      where: [{ fromWalletId: In(walletIds) }, { toWalletId: In(walletIds) }],
+      relations: ['fromWallet', 'toWallet'],
+    });
+  }
+
+  async findByUser(userId: number): Promise<Transaction[]> {
+    // return this.transactionRepository.find({ where: { userId } });
+    return this.transactionRepository
+      .createQueryBuilder('t')
+      .innerJoin(
+        'wallet',
+        'w',
+        '(w.id = t.from_wallet_id OR w.id = t.to_wallet_id) AND w.user_id = :userId',
+        { userId },
+      )
+      .getMany();
   }
 
   async findOne(id: number): Promise<Transaction> {

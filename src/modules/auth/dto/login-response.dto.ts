@@ -9,4 +9,11 @@ export class LoginResponseDto extends UserResponseDto {
   })
   @Expose()
   token!: string;
+
+  @ApiProperty({
+    example: 1700000000,
+    description: 'Token expiration time as a Unix timestamp in seconds',
+  })
+  @Expose()
+  tokenExpiresAt?: number;
 }

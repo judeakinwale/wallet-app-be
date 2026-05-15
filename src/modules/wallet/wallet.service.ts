@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import { Wallet } from './wallet.entity';
 import { WalletTransferDto } from './dto/wallet-transfer.dto';
 import { CreateWalletDto } from './dto/create-wallet.dto';
@@ -8,6 +8,7 @@ import { UpdateWalletDto } from './dto/update-wallet.dto';
 import { TransactionService } from '../transaction/transaction.service';
 import { CreateTransactionDto } from '../transaction/dto/create-transaction.dto';
 import { transactionTypeOptions } from '../transaction/transaction.types';
+import { Transaction } from '../transaction/transaction.entity';
 
 @Injectable()
 export class WalletService {
@@ -20,6 +21,12 @@ export class WalletService {
 
   async findAll(): Promise<Wallet[]> {
     return this.walletRepository.find();
+  }
+
+  async findByUser(userIds: number[]): Promise<Wallet[]> {
+    return this.walletRepository.find({
+      where: { userId: In(userIds) },
+    });
   }
 
   async findOne(id: number): Promise<Wallet> {
@@ -94,7 +101,7 @@ export class WalletService {
 
   async transfer(id: number, transfer: WalletTransferDto): Promise<Wallet> {
     const { recipientWalletId, amount } = transfer;
-
+    console.log({ id, recipientWalletId, amount });
     return this.dataSource.transaction(async (manager) => {
       // Use the manager inside the transaction
       const wallet = await manager.findOne(Wallet, { where: { id } });

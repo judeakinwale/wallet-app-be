@@ -6,6 +6,7 @@ import {
   Param,
   Delete,
   Patch,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { WalletService } from './wallet.service';
 import { Wallet } from './wallet.entity';
@@ -16,7 +17,7 @@ import { WalletTransferDto } from './dto/wallet-transfer.dto';
 import { APIResponse } from '../../shared/types.shared';
 import { UpdateWalletDto } from './dto/update-wallet.dto';
 
-@ApiTags('users')
+@ApiTags('wallet')
 @Controller('wallet')
 export class WalletController {
   constructor(private readonly walletService: WalletService) {}
@@ -25,6 +26,15 @@ export class WalletController {
   @Get()
   async findAll(): Promise<APIResponse<Wallet[]>> {
     const wallets = await this.walletService.findAll();
+    return { success: true, data: wallets, count: wallets.length };
+  }
+
+  //get all user(s) wallets
+  @Get('user/:userId')
+  async findByUser(
+    @Param('userId', ParseIntPipe) userId: number,
+  ): Promise<APIResponse<Wallet[]>> {
+    const wallets = await this.walletService.findByUser([userId]);
     return { success: true, data: wallets, count: wallets.length };
   }
 

@@ -10,10 +10,12 @@ import { StringValue } from 'ms';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { WalletService } from '../wallet/wallet.service';
 import { Wallet } from '../wallet/wallet.entity';
+import { TransactionService } from '../transaction/transaction.service';
+import { Transaction } from '../transaction/transaction.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Wallet]),
+    TypeOrmModule.forFeature([User, Wallet, Transaction]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -26,6 +28,12 @@ import { Wallet } from '../wallet/wallet.entity';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, UserService, WalletService, JwtStrategy],
+  providers: [
+    AuthService,
+    UserService,
+    WalletService,
+    TransactionService,
+    JwtStrategy,
+  ],
 })
 export class AuthModule {}

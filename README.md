@@ -29,6 +29,9 @@
 
 ```bash
 $ npm install
+
+# setup postgres
+$ sudo docker compose -f docker-compose.yml up -d
 ```
 
 ## Compile and run the project
@@ -39,6 +42,7 @@ $ npm run start
 
 # watch mode
 $ npm run start:dev
+$ npm run dev
 
 # production mode
 $ npm run start:prod

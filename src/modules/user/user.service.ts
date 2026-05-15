@@ -24,9 +24,7 @@ export class UserService {
 
   async findAll(): Promise<UserResponseDto[]> {
     const users = await this.userRepository.find();
-    return users.map(
-      (user) => plainToInstance(UserResponseDto, user) as UserResponseDto,
-    );
+    return users.map((user) => plainToInstance(UserResponseDto, user));
   }
 
   async search(queryStr: string): Promise<UserResponseDto[]> {
@@ -40,7 +38,8 @@ export class UserService {
 
     if (queryStr) {
       query.where(
-        'user.name ILIKE :queryStr OR user.email ILIKE :queryStr OR wallet.id ILIKE :queryStr OR wallet.name ILIKE :queryStr',
+        // 'user.name ILIKE :queryStr OR user.email ILIKE :queryStr OR wallet.id ILIKE :queryStr OR wallet.name ILIKE :queryStr',
+        'user.name ILIKE :queryStr OR user.email ILIKE :queryStr OR CAST(wallet.id AS text) ILIKE :queryStr OR wallet.name ILIKE :queryStr',
         { queryStr: `%${queryStr}%` },
       );
     }
@@ -51,9 +50,7 @@ export class UserService {
     query.orderBy('user.createdAt', 'DESC');
 
     const users = await query.getMany();
-    return users.map(
-      (user) => plainToInstance(UserResponseDto, user) as UserResponseDto,
-    );
+    return users.map((user) => plainToInstance(UserResponseDto, user));
   }
 
   async findOne(id: number): Promise<UserResponseDto> {
@@ -64,7 +61,7 @@ export class UserService {
     if (!user) {
       throw new NotFoundException('User does not exist!');
     }
-    return plainToInstance(UserResponseDto, user) as UserResponseDto;
+    return plainToInstance(UserResponseDto, user);
   }
 
   private async hashPassword(password: string): Promise<string> {
@@ -88,7 +85,7 @@ export class UserService {
     const saved = await this.userRepository.save(created);
 
     await this.createUserWallet(saved);
-    return plainToInstance(UserResponseDto, saved) as UserResponseDto;
+    return plainToInstance(UserResponseDto, saved);
   }
 
   async findByEmail(email: string): Promise<UserResponseDto | null> {
@@ -96,7 +93,7 @@ export class UserService {
     if (!user) {
       throw new NotFoundException('User does not exist!');
     }
-    return plainToInstance(UserResponseDto, user) as UserResponseDto;
+    return plainToInstance(UserResponseDto, user);
   }
 
   async update(
@@ -113,7 +110,7 @@ export class UserService {
     Object.assign(existing, user);
 
     const updated = await this.userRepository.save(existing);
-    return plainToInstance(UserResponseDto, updated) as UserResponseDto;
+    return plainToInstance(UserResponseDto, updated);
   }
 
   async updatePassword(
@@ -130,7 +127,7 @@ export class UserService {
     Object.assign(existing, { password: hashedPassword });
 
     const updated = await this.userRepository.save(existing);
-    return plainToInstance(UserResponseDto, updated) as UserResponseDto;
+    return plainToInstance(UserResponseDto, updated);
   }
 
   async delete(id: number): Promise<void> {

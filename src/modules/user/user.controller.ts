@@ -11,6 +11,7 @@ import {
   BadRequestException,
   ForbiddenException,
   Patch,
+  Query,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -34,6 +35,18 @@ export class UserController {
     return {
       success: true,
       data: users,
+    };
+  }
+
+  @Get('search')
+  async findMatching(
+    @Query('query') query: string,
+  ): Promise<APIResponse<UserResponseDto[]>> {
+    const users = await this.userService.search(query);
+    return {
+      success: true,
+      data: users,
+      message: users.length < 1 ? 'No matching users found' : undefined,
     };
   }
 

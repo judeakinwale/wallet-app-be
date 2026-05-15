@@ -56,7 +56,7 @@ export class WalletController {
   }
 
   // deposit to wallet
-  @Patch(':id/deposit')
+  @Post(':id/deposit')
   async deposit(
     @Param('id') id: number,
     @Body() depositDto: WalletDepositWithdrawalDto,
@@ -69,7 +69,7 @@ export class WalletController {
   }
 
   // withdraw from wallet
-  @Patch(':id/withdraw')
+  @Post(':id/withdraw')
   async withdraw(
     @Param('id') id: number,
     @Body() withdrawalDto: WalletDepositWithdrawalDto,
@@ -82,7 +82,7 @@ export class WalletController {
   }
 
   // transfer to other wallet
-  @Patch(':id/transfer')
+  @Post(':id/transfer')
   async transfer(
     @Param('id') id: number,
     @Body() transferDto: WalletTransferDto,

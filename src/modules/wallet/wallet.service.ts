@@ -5,6 +5,9 @@ import { Wallet } from './wallet.entity';
 import { WalletTransferDto } from './dto/wallet-transfer.dto';
 import { CreateWalletDto } from './dto/create-wallet.dto';
 import { UpdateWalletDto } from './dto/update-wallet.dto';
+import { TransactionService } from '../transaction/transaction.service';
+import { CreateTransactionDto } from '../transaction/dto/create-transaction.dto';
+import { transactionTypeOptions } from '../transaction/transaction.types';
 
 @Injectable()
 export class WalletService {
@@ -12,6 +15,7 @@ export class WalletService {
     @InjectRepository(Wallet)
     private walletRepository: Repository<Wallet>,
     private readonly dataSource: DataSource,
+    private transactionService: TransactionService,
   ) {}
 
   async findAll(): Promise<Wallet[]> {
@@ -19,7 +23,10 @@ export class WalletService {
   }
 
   async findOne(id: number): Promise<Wallet> {
-    const wallet = await this.walletRepository.findOne({ where: { id } });
+    const wallet = await this.walletRepository.findOne({
+      where: { id },
+      relations: ['user', 'sentTransactions', 'receivedTransactions'],
+    });
     if (!wallet) {
       throw new NotFoundException('Wallet does not exist!');
     }
@@ -53,7 +60,17 @@ export class WalletService {
       throw new NotFoundException('Insufficient balance!');
     }
     wallet.balance = (wallet.balance || 0) - amount;
-    return this.walletRepository.save(wallet);
+    const updated = await this.walletRepository.save(wallet);
+
+    // create transaction reference
+    const transactionPayload: CreateTransactionDto = {
+      type: transactionTypeOptions.withdrawal,
+      amount,
+      toWalletId: wallet.id,
+    };
+    await this.transactionService.create(transactionPayload);
+
+    return updated;
   }
 
   async deposit(id: number, amount: number): Promise<Wallet> {
@@ -62,7 +79,17 @@ export class WalletService {
       throw new NotFoundException('Wallet does not exist!');
     }
     wallet.balance = (wallet.balance || 0) + amount;
-    return this.walletRepository.save(wallet);
+    const updated = await this.walletRepository.save(wallet);
+
+    // create transaction reference
+    const transactionPayload: CreateTransactionDto = {
+      type: transactionTypeOptions.deposit,
+      amount,
+      toWalletId: wallet.id,
+    };
+    await this.transactionService.create(transactionPayload);
+
+    return updated;
   }
 
   async transfer(id: number, transfer: WalletTransferDto): Promise<Wallet> {
@@ -93,6 +120,15 @@ export class WalletService {
       // Save both within the transaction
       await manager.save(wallet);
       await manager.save(recipientWallet);
+
+      // create transaction reference
+      const transactionPayload: CreateTransactionDto = {
+        type: transactionTypeOptions.transfer,
+        amount,
+        fromWalletId: wallet.id,
+        toWalletId: recipientWallet.id,
+      };
+      await this.transactionService.create(transactionPayload);
 
       // Return updated wallet
       return wallet;

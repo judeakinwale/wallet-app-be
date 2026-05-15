@@ -17,6 +17,7 @@ type DBType = 'postgres' | 'mysql' | 'sqlite' | 'mariadb' | 'mongodb' | 'mssql';
     AuthModule,
     UserModule,
     WalletModule,
+    TransactionModule,
     ConfigModule.forRoot({
       // envFilePath: 'src/config/.env', // seems to not work
       isGlobal: true,
@@ -46,7 +47,6 @@ type DBType = 'postgres' | 'mysql' | 'sqlite' | 'mariadb' | 'mongodb' | 'mssql';
     //   synchronize: true,
     // }),
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
-    TransactionModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
@@ -25,8 +29,38 @@ export class UserService {
     );
   }
 
-  async findOne(id: number): Promise<UserResponseDto | null> {
-    const user = await this.userRepository.findOne({ where: { id } });
+  async search(queryStr: string): Promise<UserResponseDto[]> {
+    if (!queryStr) {
+      throw new BadRequestException('Provide a search query!');
+    }
+
+    const query = this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.wallets', 'wallet'); // join wallets
+
+    if (queryStr) {
+      query.where(
+        'user.name ILIKE :queryStr OR user.email ILIKE :queryStr OR wallet.id ILIKE :queryStr OR wallet.name ILIKE :queryStr',
+        { queryStr: `%${queryStr}%` },
+      );
+    }
+
+    query.distinct(true);
+    query.select(['user', 'wallet']);
+
+    query.orderBy('user.createdAt', 'DESC');
+
+    const users = await query.getMany();
+    return users.map(
+      (user) => plainToInstance(UserResponseDto, user) as UserResponseDto,
+    );
+  }
+
+  async findOne(id: number): Promise<UserResponseDto> {
+    const user = await this.userRepository.findOne({
+      where: { id },
+      relations: ['wallets'],
+    });
     if (!user) {
       throw new NotFoundException('User does not exist!');
     }

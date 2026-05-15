@@ -73,7 +73,7 @@ export class WalletService {
     const transactionPayload: CreateTransactionDto = {
       type: transactionTypeOptions.withdrawal,
       amount,
-      toWalletId: wallet.id,
+      fromWalletId: wallet.id,
     };
     await this.transactionService.create(transactionPayload);
 

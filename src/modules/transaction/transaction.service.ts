@@ -20,7 +20,7 @@ export class TransactionService {
   async findByWallet(walletIds: number[]): Promise<Transaction[]> {
     return this.transactionRepository.find({
       where: [{ fromWalletId: In(walletIds) }, { toWalletId: In(walletIds) }],
-      relations: ['fromWallet', 'toWallet'],
+      relations: ['fromWallet', 'fromWallet.user', 'toWallet', 'toWallet.user'],
     });
   }
 
